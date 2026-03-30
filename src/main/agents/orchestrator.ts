@@ -64,8 +64,8 @@ export class AgentOrchestrator {
     this.providerRegistry.register(
       new OpenClawAgentProvider({
         enabled: ocSettings?.enabled ?? false,
-        gatewayUrl: (ocSettings?.gatewayUrl as string) ?? "",
-        gatewayToken: (ocSettings?.gatewayToken as string) ?? "",
+        gatewayUrl: ocSettings?.gatewayUrl ?? "",
+        gatewayToken: ocSettings?.gatewayToken ?? "",
       }),
     );
 
