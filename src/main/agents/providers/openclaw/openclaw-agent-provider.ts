@@ -12,7 +12,7 @@ import type {
 import type { OpenClawProviderConfig, OpenClawAgentResponse } from "./types";
 
 function isDemoMode(): boolean {
-  return process.env.GMAIL_DRAFTER_DEMO_MODE === "true";
+  return process.env.EXO_DEMO_MODE === "true";
 }
 
 const TIMEOUT_MS = 300_000;
