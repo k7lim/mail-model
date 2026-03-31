@@ -106,7 +106,7 @@ export function resetClient(): void {
   _defaultClient = null;
 }
 
-function getClient(): Anthropic {
+export function getClient(): Anthropic {
   if (_anthropicClient) return _anthropicClient;
   if (!_defaultClient) _defaultClient = new Anthropic();
   return _defaultClient;

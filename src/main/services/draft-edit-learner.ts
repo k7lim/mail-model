@@ -10,8 +10,7 @@
  * Key invariant: draft memories never enter the prompt. Only promoted memories do.
  */
 import { randomUUID } from "crypto";
-import Anthropic from "@anthropic-ai/sdk";
-import { createMessage, recordStreamingCall } from "./anthropic-service";
+import { createMessage, getClient, recordStreamingCall } from "./anthropic-service";
 import {
   getThreadDraftBody,
   getDraftMemories,
@@ -163,9 +162,9 @@ async function analyzeDraftEdit(params: {
 }): Promise<DraftEditObservation[] | null> {
   const { originalDraft, sentBody, senderEmail, senderDomain, subject } = params;
 
-  const anthropic = new Anthropic();
+  const client = getClient();
   const streamStartTime = Date.now();
-  const stream = anthropic.messages.stream({
+  const stream = client.messages.stream({
     model: "claude-opus-4-20250514",
     max_tokens: 16000,
     thinking: {
