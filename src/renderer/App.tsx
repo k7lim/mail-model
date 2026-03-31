@@ -46,6 +46,7 @@ import { LocalDraftSchema } from "../shared/types";
 import type {
   DashboardEmail,
   OutboxStats,
+  ScheduledMessageStats,
   ThemePreference,
   InboxDensity,
   ScheduledMessage,
@@ -1321,7 +1322,7 @@ export default function App() {
     });
 
     // Fetch initial scheduled send stats
-    window.api.scheduledSend.stats().then((result: IpcResponse<OutboxStats>) => {
+    window.api.scheduledSend.stats().then((result: IpcResponse<ScheduledMessageStats>) => {
       if (result.success) {
         setScheduledMessageStats(result.data);
       }

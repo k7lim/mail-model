@@ -116,7 +116,7 @@ export function EmailList() {
         }
         // Process snoozes that expired while the app was closed —
         // adds them to recentlyUnsnoozedThreadIds so they sort correctly
-        if (response.expired?.length > 0) {
+        if (response.expired && response.expired.length > 0) {
           const store = useAppStore.getState();
           for (const email of response.expired) {
             store.handleThreadUnsnoozed(email.threadId, email.snoozeUntil);
