@@ -54,8 +54,12 @@ test.describe("buildBashPreToolUseHook", () => {
     expect(await invoke(["ls"], "ls -la /tmp/my_dir")).toBe("allow");
   });
 
-  test("allows command with equals-style options", async () => {
+  test("allows command with colon in script name", async () => {
     expect(await invoke(["npm"], "npm run test:unit")).toBe("allow");
+  });
+
+  test("allows command with equals-style options", async () => {
+    expect(await invoke(["npm"], "npm install --save-exact=true")).toBe("allow");
   });
 
   test("allows command with quoted argument", async () => {
@@ -74,6 +78,10 @@ test.describe("buildBashPreToolUseHook", () => {
     expect(await invoke(["npm"], "npm run test:e2e")).toBe("allow");
   });
 
+  test("allows full-path command when base name is in allowlist", async () => {
+    expect(await invoke(["git"], "/usr/bin/git status")).toBe("allow");
+  });
+
   // --- Command not in allowlist ---
 
   test("denies a command whose base name is not in the allowed list", async () => {
@@ -82,6 +90,10 @@ test.describe("buildBashPreToolUseHook", () => {
 
   test("denies an empty command string", async () => {
     expect(await invoke(["git"], "")).toBe("deny");
+  });
+
+  test("denies a whitespace-only command string", async () => {
+    expect(await invoke(["git"], "   ")).toBe("deny");
   });
 
   // --- Blocklist bypass vectors now caught by the allowlist ---

@@ -15,7 +15,7 @@ import type { CliToolConfig } from "../../../shared/types";
  * Rejected (implicitly, by absence): ; & | ` $ > < ( ) { } \ ! ? and
  * newlines — all of which enable command chaining or shell expansion.
  */
-const SAFE_COMMAND_PATTERN = /^[a-zA-Z0-9 \-_./\:=,@~[\]"']*$/;
+const SAFE_COMMAND_PATTERN = /^[a-zA-Z0-9 \-_./\:=,@~[\]"']+$/;
 
 /**
  * Build a PreToolUse hook that gates Bash commands against the CLI tool allowlist.
