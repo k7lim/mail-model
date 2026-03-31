@@ -672,7 +672,7 @@ export async function learnFromDraftEdit(params: {
   }
 
   const { draftBody: rawDraftBody, fromAddress, subject } = draftInfo;
-  log.info(`[DraftEditLearner] Found AI draft for thread ${threadId}, subject: "${subject}"`);
+  log.info(`[DraftEditLearner] Found AI draft for thread ${threadId}`);
 
   // 2. Normalize both to plain text for comparison
   const originalDraft = htmlToPlainText(rawDraftBody);
@@ -694,10 +694,7 @@ export async function learnFromDraftEdit(params: {
   const senderDomain = senderEmail.includes("@") ? senderEmail.split("@")[1] : "";
 
   log.info(
-    `[DraftEditLearner] Original draft (${originalDraft.length} chars):\n${originalDraft.slice(0, 500)}`,
-  );
-  log.info(
-    `[DraftEditLearner] Sent text (${sentPlainText.length} chars):\n${sentPlainText.slice(0, 500)}`,
+    `[DraftEditLearner] Original draft: ${originalDraft.length} chars, sent text: ${sentPlainText.length} chars`,
   );
   log.info(`[DraftEditLearner] Calling Claude to analyze edit for ${senderEmail}...`);
 
