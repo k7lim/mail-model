@@ -1341,6 +1341,22 @@ export function SettingsPanel({ onClose, initialTab }: SettingsPanelProps) {
                 )}
               </div>
 
+              {/* Troubleshooting */}
+              <div className="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-600">
+                <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-1">
+                  Troubleshooting
+                </h3>
+                <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
+                  Export log files to share with support. Email content is automatically redacted.
+                </p>
+                <button
+                  onClick={() => window.api.settings.exportLogs()}
+                  className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg transition-colors"
+                >
+                  Export Logs
+                </button>
+              </div>
+
               {/* Save button */}
               <div className="flex justify-end">
                 <button
