@@ -30,12 +30,12 @@ export function FindBar() {
     };
   }, []);
 
-  // Handle Escape — let modal overlays (CommandPalette, AgentPalette) take priority
+  // Handle Escape — let modal overlays (CommandPalette, AgentPalette, SearchBar) take priority
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
         const state = useAppStore.getState();
-        if (state.isCommandPaletteOpen || state.isAgentPaletteOpen) return;
+        if (state.isCommandPaletteOpen || state.isAgentPaletteOpen || state.isSearchOpen) return;
         e.preventDefault();
         e.stopPropagation();
         close();
