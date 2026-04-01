@@ -61,7 +61,8 @@ export function createWindow(): BrowserWindow {
   // Intercept it here: prevent the menu from handling it, then tell the
   // renderer to open our custom find bar instead.
   mainWindow.webContents.on("before-input-event", (event, input) => {
-    if (input.type === "keyDown" && input.key === "f" && (input.meta || input.control)) {
+    const isFindModifier = process.platform === "darwin" ? input.meta : input.control;
+    if (input.type === "keyDown" && input.key === "f" && isFindModifier) {
       event.preventDefault();
       mainWindow?.webContents.send("find:open");
     }

@@ -207,8 +207,10 @@ export function useKeyboardShortcuts(options: UseKeyboardShortcutsOptions = {}) 
         return;
       }
 
-      // Cmd+F for find-in-page — works in ALL modes (like Cmd+J/K above)
-      if (e.key === "f" && (e.metaKey || e.ctrlKey)) {
+      // Cmd+F (macOS) / Ctrl+F (Windows/Linux) for find-in-page
+      // Don't intercept Ctrl+F on macOS — it's Emacs cursor-forward in text inputs
+      const isMac = navigator.platform.startsWith("Mac");
+      if (e.key === "f" && (isMac ? e.metaKey : e.ctrlKey)) {
         e.preventDefault();
         state.openFindBar();
         return;
