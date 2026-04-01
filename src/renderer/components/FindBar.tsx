@@ -30,10 +30,12 @@ export function FindBar() {
     };
   }, []);
 
-  // Handle Escape locally (capture phase, matching SearchBar/CommandPalette pattern)
+  // Handle Escape — let modal overlays (CommandPalette, AgentPalette) take priority
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
+        const state = useAppStore.getState();
+        if (state.isCommandPaletteOpen || state.isAgentPaletteOpen) return;
         e.preventDefault();
         e.stopPropagation();
         close();
