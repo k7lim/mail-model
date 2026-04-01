@@ -207,6 +207,13 @@ export function useKeyboardShortcuts(options: UseKeyboardShortcutsOptions = {}) 
         return;
       }
 
+      // Cmd+F for find-in-page — works in ALL modes (like Cmd+J/K above)
+      if (e.key === "f" && (e.metaKey || e.ctrlKey)) {
+        e.preventDefault();
+        state.openFindBar();
+        return;
+      }
+
       // In compose mode, only handle Cmd+Enter for send — except when the
       // editor isn't focused (e.g. auto-opened draft without focus), where
       // Enter should focus the editor and "b" should switch sidebar tabs.
@@ -221,13 +228,6 @@ export function useKeyboardShortcuts(options: UseKeyboardShortcutsOptions = {}) 
 
       // Skip if user is typing in an input
       if (isInputFocused()) {
-        return;
-      }
-
-      // Cmd+F for find-in-page
-      if (e.key === "f" && (e.metaKey || e.ctrlKey)) {
-        e.preventDefault();
-        state.openFindBar();
         return;
       }
 
@@ -1044,6 +1044,18 @@ export function useKeyboardShortcuts(options: UseKeyboardShortcutsOptions = {}) 
       if (gPrefixTimeoutRef.current) {
         clearTimeout(gPrefixTimeoutRef.current);
       }
+    };
+  }, []);
+
+  // Listen for Cmd+F routed from main process (Electron's default menu
+  // captures Cmd+F before the renderer sees it, so the main process
+  // intercepts it via before-input-event and sends find:open instead).
+  useEffect(() => {
+    window.api.find.onOpen(() => {
+      useAppStore.getState().openFindBar();
+    });
+    return () => {
+      window.api.find.removeOpenListener();
     };
   }, []);
 

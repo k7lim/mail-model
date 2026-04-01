@@ -27,7 +27,10 @@ function ensureFoundInPageListener(win: BrowserWindow): void {
 }
 
 export function registerFindIpc(): void {
-  ipcMain.handle(
+  // Use ipcMain.on (fire-and-forget) instead of ipcMain.handle for find:find.
+  // findInPage is async and its found-in-page event results are sent back
+  // via a separate IPC channel (find:result), not as a return value.
+  ipcMain.on(
     "find:find",
     (
       _event,
@@ -40,7 +43,7 @@ export function registerFindIpc(): void {
     },
   );
 
-  ipcMain.handle("find:stop", () => {
+  ipcMain.on("find:stop", () => {
     const w = getMainWindow();
     if (!w) return;
     w.webContents.stopFindInPage("clearSelection");

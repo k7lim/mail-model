@@ -35,7 +35,6 @@ import { ComposeToolbar } from "./ComposeToolbar";
 import { trackEvent } from "../services/posthog";
 import { draftBodyToHtml } from "../../shared/draft-utils";
 import { AnalysisPrioritySection } from "./AnalysisPrioritySection";
-import { FindBar } from "./FindBar";
 
 declare global {
   interface Window {
@@ -2200,7 +2199,6 @@ export function EmailDetail({ isFullView = false }: EmailDetailProps) {
   const setShowSnoozeMenu = useAppStore((s) => s.setShowSnoozeMenu);
   const isInlineReplyOpen = useAppStore((s) => s.isInlineReplyOpen);
   const setInlineReplyOpen = useAppStore((s) => s.setInlineReplyOpen);
-  const isFindBarOpen = useAppStore((s) => s.isFindBarOpen);
   const focusedThreadEmailId = useAppStore((s) => s.focusedThreadEmailId);
   const setFocusedThreadEmailId = useAppStore((s) => s.setFocusedThreadEmailId);
 
@@ -3186,7 +3184,6 @@ export function EmailDetail({ isFullView = false }: EmailDetailProps) {
 
   return (
     <div className="flex-1 flex flex-col bg-white dark:bg-gray-800 overflow-hidden">
-      {isFindBarOpen && <FindBar />}
       {/* Back button for full view */}
       {isFullView && (
         <div className="h-10 px-4 bg-white dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700/50 flex items-center flex-shrink-0">

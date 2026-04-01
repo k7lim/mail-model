@@ -5,12 +5,14 @@ declare global {
   interface Window {
     api: {
       find: {
-        find: (text: string, options?: { forward?: boolean; findNext?: boolean }) => Promise<void>;
-        stop: () => Promise<void>;
+        find: (text: string, options?: { forward?: boolean; findNext?: boolean }) => void;
+        stop: () => void;
         onResult: (
           callback: (result: { activeMatchOrdinal: number; matches: number }) => void,
         ) => void;
         removeResultListener: () => void;
+        onOpen: (callback: () => void) => void;
+        removeOpenListener: () => void;
       };
     };
   }

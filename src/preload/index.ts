@@ -1064,9 +1064,9 @@ const api = {
 
   // Find-in-page
   find: {
-    find: (text: string, options?: { forward?: boolean; findNext?: boolean }): Promise<void> =>
-      ipcRenderer.invoke("find:find", { text, ...options }),
-    stop: (): Promise<void> => ipcRenderer.invoke("find:stop"),
+    find: (text: string, options?: { forward?: boolean; findNext?: boolean }): void =>
+      ipcRenderer.send("find:find", { text, ...options }),
+    stop: (): void => ipcRenderer.send("find:stop"),
     onResult: (
       callback: (result: { activeMatchOrdinal: number; matches: number }) => void,
     ): void => {
@@ -1078,6 +1078,12 @@ const api = {
     },
     removeResultListener: (): void => {
       ipcRenderer.removeAllListeners("find:result");
+    },
+    onOpen: (callback: () => void): void => {
+      ipcRenderer.on("find:open", () => callback());
+    },
+    removeOpenListener: (): void => {
+      ipcRenderer.removeAllListeners("find:open");
     },
   },
 };

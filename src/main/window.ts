@@ -57,6 +57,16 @@ export function createWindow(): BrowserWindow {
     }
   });
 
+  // Electron's default Edit menu captures Cmd+F for its built-in Find.
+  // Intercept it here: prevent the menu from handling it, then tell the
+  // renderer to open our custom find bar instead.
+  mainWindow.webContents.on("before-input-event", (event, input) => {
+    if (input.type === "keyDown" && input.key === "f" && (input.meta || input.control)) {
+      event.preventDefault();
+      mainWindow?.webContents.send("find:open");
+    }
+  });
+
   mainWindow.webContents.setWindowOpenHandler((details) => {
     shell.openExternal(details.url);
     return { action: "deny" };
