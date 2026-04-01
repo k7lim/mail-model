@@ -29,6 +29,7 @@ export function SetupWizard({ onComplete }: SetupWizardProps) {
 
   // API key input
   const [apiKey, setApiKey] = useState("");
+  const [baseUrl, setBaseUrl] = useState("");
 
   // Extension auth state
   const [extensionAuths, setExtensionAuths] = useState<ExtensionAuthInfo[]>([]);
@@ -127,6 +128,7 @@ export function SetupWizard({ onComplete }: SetupWizardProps) {
 
       const result = (await window.api.settings.set({
         anthropicApiKey: apiKey.trim(),
+        anthropicBaseUrl: baseUrl.trim() || undefined,
       })) as IpcResponse<void>;
       if (result.success) {
         const authResult = (await window.api.gmail.checkAuth()) as IpcResponse<{
@@ -378,6 +380,22 @@ export function SetupWizard({ onComplete }: SetupWizardProps) {
                     placeholder="sk-ant-api03-..."
                     className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    API Base URL{" "}
+                    <span className="font-normal text-gray-400 dark:text-gray-500">(optional)</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={baseUrl}
+                    onChange={(e) => setBaseUrl(e.target.value)}
+                    placeholder="https://api.anthropic.com"
+                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                  <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
+                    Leave blank to use the default Anthropic API. Set to use a compatible proxy.
+                  </p>
                 </div>
               </div>
 
