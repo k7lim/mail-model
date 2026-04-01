@@ -111,6 +111,7 @@ export class ClaudeAgentProvider implements AgentProvider {
     // Prevent user env vars from overriding security-sensitive keys
     const protectedEnvKeys = new Set([
       "ANTHROPIC_API_KEY",
+      "ANTHROPIC_BASE_URL",
       "CLAUDECODE",
       "ELECTRON_RUN_AS_NODE",
       "NODE_OPTIONS",
@@ -345,6 +346,11 @@ export class ClaudeAgentProvider implements AgentProvider {
       env.ANTHROPIC_API_KEY = this.frameworkConfig.anthropicApiKey;
     } else {
       delete env.ANTHROPIC_API_KEY;
+    }
+    if (this.frameworkConfig.anthropicBaseUrl) {
+      env.ANTHROPIC_BASE_URL = this.frameworkConfig.anthropicBaseUrl;
+    } else {
+      delete env.ANTHROPIC_BASE_URL;
     }
     // Prevent cli.js from detecting a "nested session" if CLAUDECODE leaks into
     // the Electron process env (e.g. when launched from a Claude Code terminal).

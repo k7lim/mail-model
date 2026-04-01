@@ -367,6 +367,7 @@ export const ConfigSchema = z.object({
   modelConfig: ModelConfigSchema.optional(),
   dryRun: z.boolean().default(false),
   anthropicApiKey: z.string().optional(),
+  anthropicBaseUrl: z.string().optional(),
   analysisPrompt: z.string().default(DEFAULT_ANALYSIS_PROMPT),
   draftPrompt: z.string().default(DEFAULT_DRAFT_PROMPT),
   ea: EAConfigSchema.optional(),

@@ -274,6 +274,25 @@ test.describe("ConfigSchema", () => {
     expect(result.success).toBe(true);
   });
 
+  test("validates config with anthropicBaseUrl", () => {
+    const result = ConfigSchema.safeParse({
+      anthropicApiKey: "sk-test-key",
+      anthropicBaseUrl: "https://api.z.ai/api/anthropic",
+    });
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.anthropicBaseUrl).toBe("https://api.z.ai/api/anthropic");
+    }
+  });
+
+  test("anthropicBaseUrl is optional and defaults to undefined", () => {
+    const result = ConfigSchema.safeParse({});
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.anthropicBaseUrl).toBeUndefined();
+    }
+  });
+
   test("rejects invalid theme", () => {
     const result = ConfigSchema.safeParse({
       theme: "midnight", // not a valid enum

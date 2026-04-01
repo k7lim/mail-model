@@ -220,10 +220,12 @@ export class AgentCoordinator {
     // when neither exists so the SDK falls through to Claude Code's stored OAuth.
     const appConfig = getConfig();
     const apiKey = appConfig.anthropicApiKey || process.env.ANTHROPIC_API_KEY || undefined;
+    const baseUrl = appConfig.anthropicBaseUrl || process.env.ANTHROPIC_BASE_URL || undefined;
     const browser = appConfig.agentBrowser;
     const baseConfig: AgentFrameworkConfig = {
       model: getModelIdForFeature("agentDrafter"),
       anthropicApiKey: apiKey,
+      anthropicBaseUrl: baseUrl,
       browserConfig: browser
         ? {
             enabled: browser.enabled,
@@ -263,6 +265,8 @@ export class AgentCoordinator {
               model: getModelIdForFeature("agentDrafter"),
               anthropicApiKey:
                 getConfig().anthropicApiKey || process.env.ANTHROPIC_API_KEY || undefined,
+              anthropicBaseUrl:
+                getConfig().anthropicBaseUrl || process.env.ANTHROPIC_BASE_URL || undefined,
             },
           });
         }
@@ -501,6 +505,7 @@ export class AgentCoordinator {
     const config: AgentFrameworkConfig = {
       model: getModelIdForFeature("agentDrafter"),
       anthropicApiKey: appConfig.anthropicApiKey || process.env.ANTHROPIC_API_KEY || undefined,
+      anthropicBaseUrl: appConfig.anthropicBaseUrl || process.env.ANTHROPIC_BASE_URL || undefined,
     };
     this.sendToWorker({ type: "config_update", config });
 

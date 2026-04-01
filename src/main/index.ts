@@ -296,12 +296,15 @@ const _db = initDatabase();
 import { setAnthropicServiceDb } from "./services/anthropic-service";
 setAnthropicServiceDb(_db);
 
-// If no ANTHROPIC_API_KEY in env (e.g. packaged app with no .env), read from stored config
-// so that services using `new Anthropic()` pick it up automatically.
+// If no ANTHROPIC_API_KEY / ANTHROPIC_BASE_URL in env (e.g. packaged app with no .env),
+// read from stored config so that services using `new Anthropic()` pick them up automatically.
 {
   const config = getConfig();
   if (!process.env.ANTHROPIC_API_KEY && config.anthropicApiKey) {
     process.env.ANTHROPIC_API_KEY = config.anthropicApiKey;
+  }
+  if (!process.env.ANTHROPIC_BASE_URL && config.anthropicBaseUrl) {
+    process.env.ANTHROPIC_BASE_URL = config.anthropicBaseUrl;
   }
 }
 

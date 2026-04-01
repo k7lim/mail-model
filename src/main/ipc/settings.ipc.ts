@@ -144,7 +144,11 @@ export function registerSettingsIpc(): void {
           model = "claude-haiku-4-5-20251001";
         }
 
-        const client = new Anthropic({ apiKey, timeout: 10_000 });
+        const client = new Anthropic({
+          apiKey,
+          timeout: 10_000,
+          baseURL: process.env.ANTHROPIC_BASE_URL || undefined,
+        });
         await client.messages.create({
           model,
           max_tokens: 1,
@@ -218,6 +222,19 @@ export function registerSettingsIpc(): void {
         });
       }
 
+      // If anthropicBaseUrl changed, propagate to process.env and reset client
+      if ("anthropicBaseUrl" in config) {
+        if (newConfig.anthropicBaseUrl) {
+          process.env.ANTHROPIC_BASE_URL = newConfig.anthropicBaseUrl;
+        } else {
+          delete process.env.ANTHROPIC_BASE_URL;
+        }
+        agentCoordinator.updateConfig({
+          anthropicBaseUrl: newConfig.anthropicBaseUrl || undefined,
+        });
+        resetClient();
+      }
+
       // Propagate agent browser config changes
       if ("agentBrowser" in config) {
         const browser = newConfig.agentBrowser;
@@ -270,9 +287,9 @@ export function registerSettingsIpc(): void {
         });
       }
 
-      // Reset cached analyzer/service instances when model config or API key changes,
-      // since they hold Anthropic client instances that capture the key at construction.
-      if ("modelConfig" in config || "anthropicApiKey" in config) {
+      // Reset cached analyzer/service instances when model config, API key, or base URL changes,
+      // since they hold Anthropic client instances that capture the key/URL at construction.
+      if ("modelConfig" in config || "anthropicApiKey" in config || "anthropicBaseUrl" in config) {
         resetClient();
         resetAnalyzer();
         resetArchiveReadyAnalyzer();

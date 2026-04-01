@@ -112,6 +112,7 @@ export function SettingsPanel({ onClose, initialTab }: SettingsPanelProps) {
 
   // Agent authentication state
   const [anthropicApiKey, setAnthropicApiKey] = useState("");
+  const [anthropicBaseUrl, setAnthropicBaseUrl] = useState("");
   const [isSavingApiKey, setIsSavingApiKey] = useState(false);
   const [apiKeySaved, setApiKeySaved] = useState(false);
   const [claudeCliAvailable, setClaudeCliAvailable] = useState(false);
@@ -224,6 +225,7 @@ export function SettingsPanel({ onClose, initialTab }: SettingsPanelProps) {
       setGithubToken(generalConfig.githubToken ?? "");
       setAllowPrereleaseUpdates(generalConfig.allowPrereleaseUpdates ?? false);
       setAnthropicApiKey(generalConfig.anthropicApiKey ?? "");
+      setAnthropicBaseUrl(generalConfig.anthropicBaseUrl ?? "");
       const browser = generalConfig.agentBrowser;
       if (browser) {
         setBrowserEnabled(browser.enabled);
@@ -545,7 +547,10 @@ export function SettingsPanel({ onClose, initialTab }: SettingsPanelProps) {
     setIsSavingApiKey(true);
     setApiKeySaved(false);
     try {
-      await window.api.settings.set({ anthropicApiKey: anthropicApiKey || undefined });
+      await window.api.settings.set({
+        anthropicApiKey: anthropicApiKey || undefined,
+        anthropicBaseUrl: anthropicBaseUrl || undefined,
+      });
       queryClient.invalidateQueries({ queryKey: ["general-config"] });
       setApiKeySaved(true);
       setTimeout(() => setApiKeySaved(false), 3000);
@@ -2427,6 +2432,21 @@ export function SettingsPanel({ onClose, initialTab }: SettingsPanelProps) {
                   >
                     {isSavingApiKey ? "Saving..." : apiKeySaved ? "Saved" : "Save"}
                   </button>
+                </div>
+                <div className="mt-3">
+                  <label className="text-xs text-gray-500 dark:text-gray-400 mb-1 block">
+                    API Base URL (optional)
+                  </label>
+                  <input
+                    type="text"
+                    value={anthropicBaseUrl}
+                    onChange={(e) => setAnthropicBaseUrl(e.target.value)}
+                    placeholder="https://api.anthropic.com"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-400"
+                  />
+                  <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
+                    Override to use an Anthropic-compatible API proxy. Leave blank for default.
+                  </p>
                 </div>
               </div>
 

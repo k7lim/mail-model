@@ -108,7 +108,11 @@ export function resetClient(): void {
 
 export function getClient(): Anthropic {
   if (_anthropicClient) return _anthropicClient;
-  if (!_defaultClient) _defaultClient = new Anthropic();
+  if (!_defaultClient) {
+    _defaultClient = new Anthropic({
+      baseURL: process.env.ANTHROPIC_BASE_URL || undefined,
+    });
+  }
   return _defaultClient;
 }
 

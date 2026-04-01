@@ -322,6 +322,86 @@ test.describe("Settings Panel - Undo Send Delay", () => {
   });
 });
 
+test.describe("Settings Panel - Anthropic Base URL", () => {
+  test.describe.configure({ mode: "serial" });
+  let electronApp: ElectronApplication;
+  let page: Page;
+
+  test.beforeAll(async ({}, testInfo) => {
+    const result = await launchElectronApp({ workerIndex: testInfo.workerIndex });
+    electronApp = result.app;
+    page = result.page;
+  });
+
+  test.afterAll(async () => {
+    if (electronApp) await electronApp.close();
+  });
+
+  test("base URL field is visible on Agents tab", async () => {
+    // Open settings
+    const settingsButton = page.locator("button[title='Settings']");
+    await settingsButton.click();
+    await expect(page.locator("h1:has-text('Settings')")).toBeVisible({ timeout: 10000 });
+
+    // Navigate to Agents tab
+    const agentsTab = page.locator("button:has-text('Agents')");
+    await agentsTab.click();
+    await page.waitForTimeout(300);
+
+    // The base URL input should be visible
+    const baseUrlInput = page.locator("input[placeholder='https://api.anthropic.com']");
+    await expect(baseUrlInput).toBeVisible({ timeout: 5000 });
+  });
+
+  test("can set a custom base URL and save", async () => {
+    const baseUrlInput = page.locator("input[placeholder='https://api.anthropic.com']");
+    await baseUrlInput.fill("https://api.z.ai/api/anthropic");
+
+    // Click Save (the same button that saves the API key)
+    const saveButton = page
+      .locator("button:has-text('Save')")
+      .filter({ hasNotText: "Saving" })
+      .first();
+    await saveButton.click();
+    await page.waitForTimeout(500);
+
+    // The button should briefly show "Saved"
+    await expect(page.locator("button:has-text('Saved')").first()).toBeVisible({ timeout: 3000 });
+  });
+
+  test("base URL persists after closing and reopening settings", async () => {
+    // Close settings
+    await page.keyboard.press("Escape");
+    await page.waitForTimeout(300);
+
+    // Reopen settings and navigate to Agents tab
+    await page.keyboard.press("Meta+,");
+    await expect(page.locator("h1:has-text('Settings')")).toBeVisible({ timeout: 5000 });
+    const agentsTab = page.locator("button:has-text('Agents')");
+    await agentsTab.click();
+    await page.waitForTimeout(300);
+
+    // The base URL should still have our value
+    const baseUrlInput = page.locator("input[placeholder='https://api.anthropic.com']");
+    await expect(baseUrlInput).toHaveValue("https://api.z.ai/api/anthropic");
+  });
+
+  test("can clear the base URL", async () => {
+    const baseUrlInput = page.locator("input[placeholder='https://api.anthropic.com']");
+    await baseUrlInput.fill("");
+
+    const saveButton = page
+      .locator("button:has-text('Save')")
+      .filter({ hasNotText: "Saving" })
+      .first();
+    await saveButton.click();
+    await page.waitForTimeout(500);
+
+    // Verify it's cleared
+    await expect(baseUrlInput).toHaveValue("");
+  });
+});
+
 test.describe("Settings Panel - Persistence", () => {
   test.describe.configure({ mode: "serial" });
   let electronApp: ElectronApplication;

@@ -17,6 +17,8 @@ import {
   setAnthropicServiceDb,
   getUsageStats,
   getCallHistory,
+  resetClient,
+  getClient,
   type LlmCallRecord,
 } from "../../src/main/services/anthropic-service";
 
@@ -339,5 +341,120 @@ test.describe("AnthropicService", () => {
   test("getCallHistory returns empty array when no calls recorded", () => {
     const history = getCallHistory();
     expect(history).toHaveLength(0);
+  });
+
+  // --- baseURL support ---
+
+  test("getClient returns a fresh instance after resetClient", () => {
+    // Clear any injected test client
+    _setClientForTesting(null);
+
+    const client1 = getClient();
+    expect(client1).toBeDefined();
+
+    resetClient();
+    const client2 = getClient();
+    expect(client2).toBeDefined();
+    expect(client2).not.toBe(client1);
+  });
+
+  test("getClient passes ANTHROPIC_BASE_URL from env to the client", () => {
+    _setClientForTesting(null);
+    const saved = process.env.ANTHROPIC_BASE_URL;
+    try {
+      process.env.ANTHROPIC_BASE_URL = "https://custom-proxy.example.com";
+      resetClient();
+      const client = getClient();
+
+      // The SDK stores baseURL on the client instance
+      expect((client as unknown as { baseURL: string }).baseURL).toBe(
+        "https://custom-proxy.example.com",
+      );
+    } finally {
+      if (saved) {
+        process.env.ANTHROPIC_BASE_URL = saved;
+      } else {
+        delete process.env.ANTHROPIC_BASE_URL;
+      }
+      resetClient();
+    }
+  });
+
+  test("getClient uses default baseURL when ANTHROPIC_BASE_URL is not set", () => {
+    _setClientForTesting(null);
+    const saved = process.env.ANTHROPIC_BASE_URL;
+    try {
+      delete process.env.ANTHROPIC_BASE_URL;
+      resetClient();
+      const client = getClient();
+
+      // Default Anthropic SDK baseURL contains "api.anthropic.com"
+      expect((client as unknown as { baseURL: string }).baseURL).toContain("api.anthropic.com");
+    } finally {
+      if (saved) {
+        process.env.ANTHROPIC_BASE_URL = saved;
+      }
+      resetClient();
+    }
+  });
+
+  test("resetClient picks up changed ANTHROPIC_BASE_URL", () => {
+    _setClientForTesting(null);
+    const saved = process.env.ANTHROPIC_BASE_URL;
+    try {
+      // Start with a custom URL
+      process.env.ANTHROPIC_BASE_URL = "https://first-proxy.example.com";
+      resetClient();
+      const client1 = getClient();
+      expect((client1 as unknown as { baseURL: string }).baseURL).toBe(
+        "https://first-proxy.example.com",
+      );
+
+      // Change the URL and reset
+      process.env.ANTHROPIC_BASE_URL = "https://second-proxy.example.com";
+      resetClient();
+      const client2 = getClient();
+      expect((client2 as unknown as { baseURL: string }).baseURL).toBe(
+        "https://second-proxy.example.com",
+      );
+
+      // Clear the URL and reset — should go back to default
+      delete process.env.ANTHROPIC_BASE_URL;
+      resetClient();
+      const client3 = getClient();
+      expect((client3 as unknown as { baseURL: string }).baseURL).toContain("api.anthropic.com");
+    } finally {
+      if (saved) {
+        process.env.ANTHROPIC_BASE_URL = saved;
+      } else {
+        delete process.env.ANTHROPIC_BASE_URL;
+      }
+      resetClient();
+    }
+  });
+
+  test("createMessage works with custom baseURL (mock client)", async () => {
+    const { client } = createMockClient("success");
+    _setClientForTesting(client);
+
+    // Even with a custom base URL set, the mock client should work fine
+    const saved = process.env.ANTHROPIC_BASE_URL;
+    try {
+      process.env.ANTHROPIC_BASE_URL = "https://custom-proxy.example.com";
+
+      const result = await createMessage(makeTestParams(), { caller: "test-baseurl" });
+      expect(result.id).toBe("msg_test_123");
+
+      // Cost should still be recorded correctly
+      const row = testDb.prepare("SELECT * FROM llm_calls LIMIT 1").get() as LlmCallRecord;
+      expect(row.caller).toBe("test-baseurl");
+      expect(row.success).toBe(1);
+    } finally {
+      if (saved) {
+        process.env.ANTHROPIC_BASE_URL = saved;
+      } else {
+        delete process.env.ANTHROPIC_BASE_URL;
+      }
+    }
   });
 });
