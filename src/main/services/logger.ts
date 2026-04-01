@@ -12,6 +12,7 @@
 import pino, { type Logger, multistream } from "pino";
 import { join } from "path";
 import { mkdirSync, readdirSync, unlinkSync, statSync } from "fs";
+import { tmpdir } from "os";
 
 // Lazy-require Electron modules so this file can be imported in tests
 // without Electron being available.
@@ -26,8 +27,10 @@ function getLogDir(): string {
     const baseDir = dev ? join(app.getAppPath(), ".dev-data") : app.getPath("userData");
     return join(baseDir, "logs");
   } catch {
-    // Fallback for tests or non-Electron environments
-    return join(process.cwd(), ".dev-data", "logs");
+    // Fallback for tests or non-Electron environments.
+    // Use os.tmpdir() instead of process.cwd() — packaged macOS apps
+    // launched from Finder have cwd=/ which is read-only.
+    return join(tmpdir(), "exo-logs");
   }
 }
 
@@ -77,10 +80,12 @@ function initLogger(): Logger {
   const dev = isDev();
 
   const streams: pino.StreamEntry[] = [
-    // Always write JSON to file
+    // Always write JSON to file.
+    // sync: true prevents SonicBoom "not ready yet" crashes on process exit —
+    // pino's exit hook calls flushSync() which throws if the async fd isn't open.
     {
       level: "debug" as const,
-      stream: pino.destination({ dest: logFile, sync: false, mkdir: true }),
+      stream: pino.destination({ dest: logFile, sync: true, mkdir: true }),
     },
   ];
 
@@ -151,5 +156,23 @@ export function getRawLogger(): Logger {
 export function flushLogs(): void {
   if (_logger) {
     _logger.flush();
+  }
+}
+
+/**
+ * Flush and close the logger, deregistering pino's process-exit hook.
+ * Call in before-quit to prevent SonicBoom errors during shutdown.
+ */
+export function closeLogs(): void {
+  if (_logger) {
+    try {
+      _logger.flush();
+    } catch {
+      /* best effort */
+    }
+    // Calling end() deregisters pino's on-exit-leak-free handler,
+    // preventing the "sonic boom is not ready yet" crash.
+    _logger.end();
+    _logger = null;
   }
 }
