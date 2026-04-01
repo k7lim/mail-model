@@ -208,8 +208,8 @@ const api = {
     get: (): Promise<unknown> => ipcRenderer.invoke("settings:get"),
     set: (config: Record<string, unknown>): Promise<unknown> =>
       ipcRenderer.invoke("settings:set", config),
-    validateApiKey: (apiKey: string): Promise<unknown> =>
-      ipcRenderer.invoke("settings:validate-api-key", { apiKey }),
+    validateApiKey: (apiKey: string, baseUrl?: string): Promise<unknown> =>
+      ipcRenderer.invoke("settings:validate-api-key", { apiKey, baseUrl }),
     getPrompts: (): Promise<unknown> => ipcRenderer.invoke("settings:get-prompts"),
     setPrompts: (prompts: {
       analysisPrompt?: string;

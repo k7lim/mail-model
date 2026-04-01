@@ -120,6 +120,7 @@ export function SetupWizard({ onComplete }: SetupWizardProps) {
       // Validate the key with a real API call before saving
       const validation = (await window.api.settings.validateApiKey(
         apiKey.trim(),
+        baseUrl.trim() || undefined,
       )) as IpcResponse<void>;
       if (!validation.success) {
         setError(validation.error ?? "Invalid API key");

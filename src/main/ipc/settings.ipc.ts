@@ -132,7 +132,7 @@ export function registerSettingsIpc(): void {
   // Validate an Anthropic API key with a minimal API call
   ipcMain.handle(
     "settings:validate-api-key",
-    async (_, { apiKey }: { apiKey: string }): Promise<IpcResponse<void>> => {
+    async (_, { apiKey, baseUrl }: { apiKey: string; baseUrl?: string }): Promise<IpcResponse<void>> => {
       try {
         const Anthropic = (await import("@anthropic-ai/sdk")).default;
 
@@ -144,10 +144,12 @@ export function registerSettingsIpc(): void {
           model = "claude-haiku-4-5-20251001";
         }
 
+        // Use the explicitly passed baseUrl (e.g. from onboarding where env isn't set yet),
+        // fall back to the current env var, then SDK default.
         const client = new Anthropic({
           apiKey,
           timeout: 10_000,
-          baseURL: process.env.ANTHROPIC_BASE_URL || undefined,
+          baseURL: baseUrl || process.env.ANTHROPIC_BASE_URL || undefined,
         });
         await client.messages.create({
           model,
