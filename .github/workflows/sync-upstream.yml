@@ -1,0 +1,66 @@
+name: Sync upstream
+
+on:
+  schedule:
+    - cron: '0 8 * * 1' # Monday 8am UTC
+  workflow_dispatch: # manual trigger
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Configure git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Add upstream remote
+        run: git remote add upstream https://github.com/ankitvgupta/mail-app.git
+
+      - name: Fetch upstream
+        run: git fetch upstream main
+
+      - name: Check if upstream has new commits
+        id: check
+        run: |
+          LOCAL=$(git rev-parse origin/main)
+          UPSTREAM=$(git rev-parse upstream/main)
+          if [ "$LOCAL" = "$UPSTREAM" ]; then
+            echo "needs_sync=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "needs_sync=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Fast-forward main
+        if: steps.check.outputs.needs_sync == 'true'
+        run: |
+          git checkout main
+          git merge --ff-only upstream/main
+          git push origin main
+
+      - name: Merge main into custom-api-host
+        if: steps.check.outputs.needs_sync == 'true'
+        id: merge
+        run: |
+          git checkout custom-api-host
+          git merge main --no-edit || echo "conflict=true" >> "$GITHUB_OUTPUT"
+
+      - name: Push custom-api-host
+        if: steps.check.outputs.needs_sync == 'true' && steps.merge.outputs.conflict != 'true'
+        run: git push origin custom-api-host
+
+      - name: Open issue on merge conflict
+        if: steps.merge.outputs.conflict == 'true'
+        run: |
+          git merge --abort
+          gh issue create \
+            --title "Upstream sync: merge conflict in custom-api-host" \
+            --body "Automatic merge of \`main\` into \`custom-api-host\` failed due to conflicts. Main has been updated — please merge manually." \
+            --label "upstream-sync"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
