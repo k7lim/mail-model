@@ -39,7 +39,7 @@ jobs:
       - name: Fast-forward main
         if: steps.check.outputs.needs_sync == 'true'
         run: |
-          git checkout main
+          git checkout --track origin/main
           git merge --ff-only upstream/main
           git push origin main
 
@@ -47,7 +47,7 @@ jobs:
         if: steps.check.outputs.needs_sync == 'true'
         id: merge
         run: |
-          git checkout custom-api-host
+          git checkout --track origin/custom-api-host
           git merge main --no-edit || echo "conflict=true" >> "$GITHUB_OUTPUT"
 
       - name: Push custom-api-host
