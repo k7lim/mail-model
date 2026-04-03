@@ -47,7 +47,7 @@ jobs:
         if: steps.check.outputs.needs_sync == 'true'
         id: merge
         run: |
-          git checkout --track origin/custom-api-host
+          git checkout custom-api-host
           git merge main --no-edit || echo "conflict=true" >> "$GITHUB_OUTPUT"
 
       - name: Push custom-api-host
