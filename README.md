@@ -39,6 +39,15 @@ This fork publishes unsigned DMG builds at [Releases](https://github.com/k7lim/m
 - **Right-click → Open**: Right-click `exo.app` in your Applications folder, select **Open**, then click **Open** in the confirmation dialog. You only need to do this once — after that it opens normally.
 - **Terminal**: Run `xattr -cr /Applications/exo.app` to remove the quarantine flag, then open the app normally.
 
+### Custom API Host
+
+This fork adds support for using a custom Anthropic API base URL (e.g. a proxy or compatible endpoint). You can set it in two places:
+
+- **Setup Wizard** — during onboarding, fill in the optional "API Base URL" field
+- **Settings → Agents** — change the "API Base URL" field at any time
+
+Leave it blank to use the default (`https://api.anthropic.com`). The setting takes effect immediately — no restart needed.
+
 See [docs/FORK.md](docs/FORK.md) for more about this fork.
 
 Exo treats AI as a first-class citizen — not a bolted-on feature. Every email gets analyzed, prioritized, and optionally drafted before you even open it. The goal is zero cognitive load: open your inbox and everything is already handled or ready to send.
