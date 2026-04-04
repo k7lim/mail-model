@@ -36,8 +36,11 @@ This fork publishes unsigned DMG builds at [Releases](https://github.com/k7lim/m
 
 **To open the app for the first time**, do one of:
 
-- **Right-click → Open**: Right-click `exo.app` in your Applications folder, select **Open**, then click **Open** in the confirmation dialog. You only need to do this once — after that it opens normally.
-- **Terminal**: Run `xattr -cr /Applications/exo.app` to remove the quarantine flag, then open the app normally.
+- **Right-click → Open**: Right-click `exo.app` in your Applications folder, select **Open**, then click **Open** in the confirmation dialog.
+- **System Settings**: Try opening the app normally (it will be blocked), then go to **System Settings → Privacy & Security**, scroll down, and click **Open Anyway** next to exo.
+- **Terminal**: Run `xattr -cr /Applications/exo.app` to remove the quarantine flag.
+
+You only need to do this once — after that the app opens normally.
 
 ### Custom API Host
 
