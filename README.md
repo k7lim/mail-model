@@ -30,6 +30,17 @@ Built with Electron, React, TypeScript, and Tailwind CSS.
 
 An open source, AI-native desktop email client. Built with Electron, React, TypeScript, and Tailwind CSS.
 
+## Installing from mail-model (this fork)
+
+This fork publishes unsigned DMG builds at [Releases](https://github.com/k7lim/mail-model/releases). Because the builds are not code-signed with an Apple Developer certificate, macOS Gatekeeper will block them on first launch.
+
+**To open the app for the first time**, do one of:
+
+- **Right-click → Open**: Right-click `exo.app` in your Applications folder, select **Open**, then click **Open** in the confirmation dialog. You only need to do this once — after that it opens normally.
+- **Terminal**: Run `xattr -cr /Applications/exo.app` to remove the quarantine flag, then open the app normally.
+
+See [docs/FORK.md](docs/FORK.md) for more about this fork.
+
 Exo treats AI as a first-class citizen — not a bolted-on feature. Every email gets analyzed, prioritized, and optionally drafted before you even open it. The goal is zero cognitive load: open your inbox and everything is already handled or ready to send.
 
 ## Getting Started 
