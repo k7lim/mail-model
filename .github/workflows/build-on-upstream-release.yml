@@ -1,0 +1,154 @@
+name: Build on upstream release
+
+on:
+  schedule:
+    - cron: '30 8 * * 1' # Monday 8:30am UTC — 30min after upstream sync
+  workflow_dispatch:
+    inputs:
+      force_version:
+        description: 'Force build a specific upstream version (e.g. v0.6.0). Leave empty to auto-detect latest.'
+        required: false
+        type: string
+      force_rebuild:
+        description: 'Rebuild even if this version was already built'
+        required: false
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+jobs:
+  check-upstream:
+    runs-on: ubuntu-latest
+    outputs:
+      upstream_version: ${{ steps.check.outputs.upstream_version }}
+      our_tag: ${{ steps.check.outputs.our_tag }}
+      should_build: ${{ steps.check.outputs.should_build }}
+    steps:
+      - name: Check for new upstream release
+        id: check
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if [ -n "${{ inputs.force_version }}" ]; then
+            LATEST="${{ inputs.force_version }}"
+            echo "Using manually specified version: $LATEST"
+          else
+            # Get latest stable (non-prerelease, non-draft) release from upstream
+            LATEST=$(gh api repos/ankitvgupta/mail-app/releases \
+              --jq '[.[] | select(.prerelease == false and .draft == false)] | sort_by(.published_at) | reverse | .[0].tag_name')
+
+            if [ -z "$LATEST" ] || [ "$LATEST" = "null" ]; then
+              echo "No stable releases found upstream"
+              echo "should_build=false" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+            echo "Latest upstream stable release: $LATEST"
+          fi
+
+          # Derive our tag: v0.6.0 → v0.6.0-mm.1
+          VERSION="${LATEST#v}"
+          OUR_TAG="v${VERSION}-mm.1"
+          echo "Our release tag: $OUR_TAG"
+
+          # Check if we already built this version
+          if [ "${{ inputs.force_rebuild }}" != "true" ]; then
+            if gh api "repos/${{ github.repository }}/releases/tags/${OUR_TAG}" --jq '.tag_name' 2>/dev/null; then
+              echo "Already built $OUR_TAG — skipping"
+              echo "should_build=false" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+          fi
+
+          echo "Will build $OUR_TAG from upstream $LATEST"
+          echo "should_build=true" >> "$GITHUB_OUTPUT"
+          echo "upstream_version=$LATEST" >> "$GITHUB_OUTPUT"
+          echo "our_tag=$OUR_TAG" >> "$GITHUB_OUTPUT"
+
+  build:
+    needs: check-upstream
+    if: needs.check-upstream.outputs.should_build == 'true'
+    runs-on: macos-latest
+    env:
+      NODE_OPTIONS: --max-old-space-size=4096
+      # Skip code signing — we don't have Apple signing certs.
+      # Users will need to right-click → Open on first launch.
+      CSC_IDENTITY_AUTO_DISCOVERY: false
+    steps:
+      - name: Checkout custom-api-host
+        uses: actions/checkout@v4
+        with:
+          ref: custom-api-host
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Set version from upstream tag
+        run: |
+          VERSION="${{ needs.check-upstream.outputs.upstream_version }}"
+          VERSION="${VERSION#v}-mm.1"
+          echo "Setting package version to $VERSION"
+          npm version "$VERSION" --no-git-tag-version --allow-same-version
+
+      - name: Build
+        env:
+          # Optional: Google OAuth credentials baked into the build.
+          # Without these the app builds fine but users can't authenticate with Google.
+          MAIN_VITE_GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
+          MAIN_VITE_GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+        run: npm run build
+
+      - name: Build unsigned DMG
+        run: npx electron-builder --publish never
+        timeout-minutes: 15
+
+      - name: Create GitHub release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          OUR_TAG: ${{ needs.check-upstream.outputs.our_tag }}
+          UPSTREAM_VERSION: ${{ needs.check-upstream.outputs.upstream_version }}
+          REPO: ${{ github.repository }}
+        run: |
+          DMG=$(ls release/*.dmg 2>/dev/null | head -1)
+          if [ -z "$DMG" ]; then
+            echo "ERROR: No .dmg file found in release/"
+            ls -la release/ || true
+            exit 1
+          fi
+
+          # Collect all release assets
+          ASSETS=("$DMG")
+          ZIP=$(ls release/*.zip 2>/dev/null | head -1)
+          if [ -n "$ZIP" ]; then
+            ASSETS+=("$ZIP")
+          fi
+
+          # Build release notes with variable expansion
+          NOTES="Unsigned build of [exo](https://github.com/ankitvgupta/mail-app) (mail-model fork) based on upstream ${UPSTREAM_VERSION}.
+
+          ## Installation
+
+          1. Download the \`.dmg\` file below
+          2. Open it and drag **exo** to Applications
+          3. Right-click the app → **Open** (required for unsigned apps on first launch)
+          4. Or run: \`xattr -cr /Applications/exo.app\`
+
+          > **Note:** This is an unsigned build. macOS Gatekeeper will warn you on first launch.
+
+          Built from [\`custom-api-host\`](https://github.com/${REPO}/tree/custom-api-host) branch."
+
+          gh release create "$OUR_TAG" \
+            --repo "$REPO" \
+            --title "exo ${OUR_TAG}" \
+            --target custom-api-host \
+            --notes "$NOTES" \
+            "${ASSETS[@]}"
+
+          echo "Release created: https://github.com/${REPO}/releases/tag/${OUR_TAG}"

@@ -1,6 +1,6 @@
 {
   "name": "exo",
-  "version": "0.5.0-k7lim.1",
+  "version": "0.6.0-k7lim.1",
   "license": "BSL-1.1",
   "description": "Automated email draft generator using Claude AI and Gmail",
   "repository": {
@@ -150,8 +150,8 @@
     ],
     "publish": {
       "provider": "github",
-      "owner": "ankitvgupta",
-      "repo": "mail-app",
+      "owner": "k7lim",
+      "repo": "mail-model",
       "private": true
     },
     "directories": {

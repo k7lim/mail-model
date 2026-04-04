@@ -1186,75 +1186,12 @@ export function SettingsPanel({ onClose, initialTab }: SettingsPanelProps) {
                         Version {updateStatus.version} is available
                       </span>
                       <button
-                        onClick={() => window.api.updates.download()}
+                        onClick={() =>
+                          window.open("https://github.com/k7lim/mail-model/releases")
+                        }
                         className="px-3 py-1 text-sm font-medium text-white bg-blue-600 dark:bg-blue-500 hover:bg-blue-700 dark:hover:bg-blue-600 rounded transition-colors"
                       >
-                        Download
-                      </button>
-                    </div>
-                  )}
-
-                  {updateStatus?.state === "downloading" && (
-                    <div className="flex items-center gap-3 bg-blue-50 dark:bg-blue-900/30 p-3 rounded-lg">
-                      <svg
-                        className="w-4 h-4 text-blue-600 dark:text-blue-400 animate-spin flex-shrink-0"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                      >
-                        <circle
-                          className="opacity-25"
-                          cx="12"
-                          cy="12"
-                          r="10"
-                          stroke="currentColor"
-                          strokeWidth="4"
-                        />
-                        <path
-                          className="opacity-75"
-                          fill="currentColor"
-                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
-                        />
-                      </svg>
-                      <span className="text-sm text-blue-800 dark:text-blue-300">
-                        Downloading update...
-                      </span>
-                      <div className="flex-1 max-w-xs">
-                        <div className="w-full bg-blue-200 dark:bg-blue-800 rounded-full h-1.5">
-                          <div
-                            className="bg-blue-600 dark:bg-blue-400 h-1.5 rounded-full transition-all duration-300"
-                            style={{ width: `${updateStatus.progress}%` }}
-                          />
-                        </div>
-                      </div>
-                      <span className="text-blue-600 dark:text-blue-400 text-sm tabular-nums">
-                        {updateStatus.progress}%
-                      </span>
-                    </div>
-                  )}
-
-                  {updateStatus?.state === "downloaded" && (
-                    <div className="flex items-center gap-3 bg-green-50 dark:bg-green-900/30 p-3 rounded-lg">
-                      <svg
-                        className="w-4 h-4 text-green-600 dark:text-green-400 flex-shrink-0"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M5 13l4 4L19 7"
-                        />
-                      </svg>
-                      <span className="text-sm text-green-800 dark:text-green-300">
-                        Version {updateStatus.version} ready to install
-                      </span>
-                      <button
-                        onClick={() => window.api.updates.install()}
-                        className="px-3 py-1 text-sm font-medium text-white bg-green-600 dark:bg-green-500 hover:bg-green-700 dark:hover:bg-green-600 rounded transition-colors"
-                      >
-                        Restart Now
+                        View Release
                       </button>
                     </div>
                   )}
@@ -1272,11 +1209,11 @@ export function SettingsPanel({ onClose, initialTab }: SettingsPanelProps) {
                     className="w-full p-3 border border-gray-300 dark:border-gray-500 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100"
                   />
                   <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                    Required for auto-updates from a private repo. Needs{" "}
+                    Used for private extension downloads. Needs{" "}
                     <code className="bg-gray-100 dark:bg-gray-700 px-1 rounded">repo</code> scope or
                     fine-grained{" "}
                     <code className="bg-gray-100 dark:bg-gray-700 px-1 rounded">contents:read</code>{" "}
-                    permission. Also used for private extension downloads.
+                    permission.
                   </p>
                 </div>
 

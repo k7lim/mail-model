@@ -28,6 +28,9 @@ class AutoUpdateService extends EventEmitter {
     autoUpdater.autoDownload = false;
     // Install on quit once downloaded
     autoUpdater.autoInstallOnAppQuit = true;
+    // Our fork's releases use -mm.N suffix (semver prerelease), so we need
+    // allowPrerelease to detect them. The Settings toggle can still override.
+    autoUpdater.allowPrerelease = true;
 
     autoUpdater.on("checking-for-update", () => {
       this.setStatus({ state: "checking" });
@@ -101,10 +104,9 @@ class AutoUpdateService extends EventEmitter {
     if (app.isPackaged) {
       autoUpdater.setFeedURL({
         provider: "github",
-        owner: "ankitvgupta",
-        repo: "mail-app",
-        private: true,
-        token: process.env.GH_TOKEN || undefined,
+        owner: "k7lim",
+        repo: "mail-model",
+        private: false,
       });
     }
   }
