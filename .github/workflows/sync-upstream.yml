@@ -12,7 +12,11 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          token: ${{ secrets.GITHUB_TOKEN }}
+          # PAT with `workflows` permission is required to push upstream
+          # changes that touch files under .github/workflows/. The default
+          # GITHUB_TOKEN cannot modify workflow files — see sync failure
+          # on 2026-04-06 where upstream edits to release.yml got rejected.
+          token: ${{ secrets.SYNC_PAT }}
 
       - name: Configure git
         run: |
