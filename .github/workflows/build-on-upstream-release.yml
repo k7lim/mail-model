@@ -2,7 +2,7 @@ name: Build on upstream release
 
 on:
   schedule:
-    - cron: '30 8 * * 1' # Monday 8:30am UTC — 30min after upstream sync
+    - cron: '30 8 * * *' # Daily 8:30am UTC — 30min after upstream sync
   workflow_dispatch:
     inputs:
       force_version:
