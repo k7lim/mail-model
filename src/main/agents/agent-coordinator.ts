@@ -22,13 +22,6 @@ import { createLogger } from "../services/logger";
 
 const log = createLogger("agent-coordinator");
 
-/** Send an IPC event to a BrowserWindow, silently skipping if the window is destroyed. */
-function safeSend(win: BrowserWindow | null, channel: string, ...args: unknown[]): void {
-  if (win && !win.isDestroyed()) {
-    win.webContents.send(channel, ...args);
-  }
-}
-
 /**
  * Coordinates the agent utility process from the main process.
  *
@@ -166,11 +159,27 @@ export class AgentCoordinator {
     ) => generateForwardForEmail({ emailId, accountId, instructions, to, cc, bcc }),
   } as const;
 
+  /**
+   * Safely send an IPC message to the renderer, guarding against
+   * the BrowserWindow having been destroyed (e.g. user quit the app
+   * while an agent task was still running).
+   */
+  private sendToRenderer(channel: string, ...args: unknown[]): void {
+    if (this.mainWindow && !this.mainWindow.isDestroyed()) {
+      this.mainWindow.webContents.send(channel, ...args);
+    }
+  }
+
   start(mainWindow: BrowserWindow): void {
     if (this.started) return;
     this.mainWindow = mainWindow;
     this.started = true;
     // Worker is spawned lazily on first use via ensureWorker()
+  }
+
+  /** Update the window reference when macOS re-creates the window on activate. */
+  setMainWindow(mainWindow: BrowserWindow): void {
+    this.mainWindow = mainWindow;
   }
 
   private spawnWorker(): void {
@@ -362,7 +371,7 @@ export class AgentCoordinator {
     // Forward events from port1 to the renderer via IPC
     port1.on("message", (event) => {
       const agentEvent = event.data as ScopedAgentEvent;
-      safeSend(this.mainWindow,"agent:event", {
+      this.sendToRenderer("agent:event", {
         taskId,
         event: agentEvent,
       });
@@ -581,15 +590,20 @@ export class AgentCoordinator {
         this.handleNetFetchRequest(msg.requestId, msg.url, msg.options);
         break;
       case "confirmation_request":
-        safeSend(this.mainWindow,"agent:confirmation", {
-          toolCallId: msg.toolCallId,
-          toolName: msg.toolName,
-          input: msg.input,
-          description: msg.description,
-        });
+        if (this.mainWindow && !this.mainWindow.isDestroyed()) {
+          this.sendToRenderer("agent:confirmation", {
+            toolCallId: msg.toolCallId,
+            toolName: msg.toolName,
+            input: msg.input,
+            description: msg.description,
+          });
+        } else {
+          // Window is gone — auto-decline so the agent task doesn't hang indefinitely
+          this.resolveConfirmation(msg.toolCallId, false);
+        }
         break;
       case "providers_list":
-        safeSend(this.mainWindow,"agent:providers", {
+        this.sendToRenderer("agent:providers", {
           providers: msg.providers,
         });
         break;
@@ -675,7 +689,7 @@ export class AgentCoordinator {
         method === "saveDraft"
           ? (args[4] as { cc?: string[]; bcc?: string[] } | undefined)
           : { cc: args[3] as string[] | undefined, bcc: args[4] as string[] | undefined };
-      safeSend(this.mainWindow,"agent:draft-saved", {
+      this.sendToRenderer("agent:draft-saved", {
         emailId,
         draft: {
           body: draftBody,
@@ -690,7 +704,7 @@ export class AgentCoordinator {
     if (method === "generateDraft" && result && typeof result === "object" && "body" in result) {
       const emailId = args[0] as string;
       const genResult = result as { body: string; cc?: string[]; bcc?: string[] };
-      safeSend(this.mainWindow,"agent:draft-saved", {
+      this.sendToRenderer("agent:draft-saved", {
         emailId,
         draft: {
           body: genResult.body,
@@ -703,7 +717,7 @@ export class AgentCoordinator {
     }
     if (method === "saveLocalDraft" && args.length >= 1) {
       const draft = args[0] as Record<string, unknown>;
-      safeSend(this.mainWindow,"agent:local-draft-saved", { draft });
+      this.sendToRenderer("agent:local-draft-saved", { draft });
     }
     // generateForward now saves via saveDraftAndSync (same as generateDraft) —
     // notify the renderer so the inline draft appears on the email
@@ -713,7 +727,7 @@ export class AgentCoordinator {
       const forwardCc = (args.length >= 5 ? args[4] : undefined) as string[] | undefined;
       const forwardBcc = (args.length >= 6 ? args[5] : undefined) as string[] | undefined;
       const genResult = result as { body: string };
-      safeSend(this.mainWindow,"agent:draft-saved", {
+      this.sendToRenderer("agent:draft-saved", {
         emailId,
         draft: {
           body: genResult.body,
